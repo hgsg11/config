@@ -1,0 +1,13 @@
+font-family = HackGen35 Console
+font-size = 16
+window-padding-x = 10
+window-padding-y = 10
+window-padding-balance = true
+
+macos-titlebar-style = transparent
+macos-window-shadow = true
+# 入力中はマウスカーソルを隠す
+mouse-hide-while-typing = true
+
+keybind = ctrl+]=next_tab
+keybind = ctrl+[=previous_tab
