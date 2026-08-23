@@ -1,10 +1,71 @@
--- Keymaps are automatically loaded on the VeryLazy event
--- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
--- Add any additional keymaps here
-
 vim.keymap.set("n", "<leader>e", function()
-  require("mini.files").open()
-end, { desc = "Open MiniFiles" })
+  local files = require("mini.files")
+  local current_file = vim.api.nvim_buf_get_name(0)
+  local anchor = files.get_latest_path() or LazyVim.root()
+
+  -- Keep the existing anchor. `open(current_file)` must not be used here,
+  -- because its argument becomes a new MiniFiles anchor.
+  files.open(anchor)
+
+  if current_file == "" or vim.uv.fs_stat(current_file) == nil then
+    return
+  end
+
+  local relative = vim.fs.relpath(anchor, current_file)
+  if relative == nil then
+    return
+  end
+
+  local branch = { anchor }
+  local path = anchor
+  for part in relative:gmatch("[^/]+") do
+    path = vim.fs.joinpath(path, part)
+    branch[#branch + 1] = path
+  end
+  files.set_branch(branch)
+end, { desc = "MiniFiles (current file)" })
+
+-- <leader><space> は Snacks Picker のまま残す。
+vim.keymap.set("n", "<leader>,", function()
+  MiniPick.builtin.buffers()
+end, { desc = "Buffers (MiniPick)" })
+
+vim.keymap.set("n", "<leader>/", function()
+  MiniPick.builtin.grep_live()
+end, { desc = "Grep (MiniPick)" })
+
+vim.keymap.set("n", "<leader>:", function()
+  MiniExtra.pickers.commands()
+end, { desc = "Commands (MiniPick)" })
+
+vim.keymap.set("n", "<leader>ff", function()
+  MiniPick.builtin.files()
+end, { desc = "Find files (MiniPick)" })
+
+vim.keymap.set("n", "<leader>fb", function()
+  MiniPick.builtin.buffers()
+end, { desc = "Buffers (MiniPick)" })
+
+vim.keymap.set("n", "<leader>fh", function()
+  MiniPick.builtin.help()
+end, { desc = "Help (MiniPick)" })
+
+vim.keymap.set("n", "<leader>fr", function()
+  MiniExtra.pickers.oldfiles()
+end, { desc = "Recent files (MiniPick)" })
+
+vim.keymap.set("n", "<leader>xx", function()
+  MiniExtra.pickers.diagnostic({ scope = "all" })
+end, { desc = "Diagnostics (MiniPick)" })
+
+vim.keymap.set("n", "<leader>qs", function()
+  MiniSessions.write()
+end, { desc = "Save session" })
+
+vim.keymap.set("n", "<leader>ql", function()
+  MiniSessions.select("read")
+end, { desc = "Load session" })
+
 -- Ctrl + p で現在のファイルの絶対パスをクリップボードにコピー
 vim.keymap.set("n", "<C-p>", function()
   local path = vim.fn.expand("%:p") -- %:p で絶対パスを取得
